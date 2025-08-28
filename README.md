@@ -10,7 +10,7 @@ Součástí je i **kumulativní vodoměr** vhodný pro **Energy Dashboard** v Ho
 1. Otevřete **HACS → Integrations**.
 2. Klikněte na **⋯ (tři tečky) → Custom repositories**.
 3. Přidejte adresu repozitáře a zvolte **Category: Integration**.  
-   - https://github.com/AidenShaw2020/evodnik_cloud_ha`
+   - https://github.com/AidenShaw2020/evodnik_cloud_ha
 4. V HACS vyhledejte **eVodník** → **Install**.
 5. **Restartujte** Home Assistant.
 6. Přejděte do **Settings → Devices & Services → Add Integration** a vyhledejte **eVodník**.
