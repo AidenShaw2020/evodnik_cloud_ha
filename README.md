@@ -19,7 +19,7 @@ Součástí je i **kumulativní vodoměr** vhodný pro **Energy Dashboard** v Ho
 
 ### Varianta B – ruční instalace
 
-1. Stáhněte release ZIP a rozbalte složku `custom_components/evodnik` do:
-   - `config/custom_components/evodnik`
+1. Stáhněte release ZIP a rozbalte složku `evodnik` do:
+   - `config/custom_components/`
 2. **Restartujte** Home Assistant.
 3. Přejděte do **Settings → Devices & Services → Add Integration** a vyhledejte **eVodník**.
