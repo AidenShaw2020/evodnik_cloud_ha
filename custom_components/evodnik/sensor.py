@@ -236,13 +236,7 @@ class BaseEvodnikEntity(CoordinatorEntity[EvodnikDataUpdateCoordinator], SensorE
 
     @property
     def extra_state_attributes(self):
-        data = self.coordinator.data or {}
-        headers = data.get("headers", [])
-        dashboard = data.get("dashboard", {})
-        return {
-            "raw_device_headers": headers,
-            "raw_device_dashboard": dashboard,
-        }
+        return {}
 
     @property
     def native_unit_of_measurement(self) -> str | None:
