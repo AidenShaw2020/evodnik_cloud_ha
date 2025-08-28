@@ -1,0 +1,39 @@
+{
+  "title": "eVodník",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Login",
+        "description": "Enter your servis.evodnik.cz credentials",
+        "data": {
+          "username": "UserName / Email",
+          "password": "Password"
+        }
+      },
+      "select_device": {
+        "title": "Select device",
+        "description": "Choose a device to monitor.",
+        "data": {
+          "device_id": "Device"
+        }
+      }
+    },
+    "error": {
+      "auth": "Login failed. Check your credentials.",
+      "no_devices": "No devices found for this account."
+    },
+    "abort": {}
+  },
+  "options": {
+    "step": {
+      "options": {
+        "title": "eVodník options",
+        "description": "Set update interval and consumption unit.",
+        "data": {
+          "scan_interval_min": "Update interval (min)",
+          "consumption_unit": "Consumption unit (e.g., L, m³)"
+        }
+      }
+    }
+  }
+}
