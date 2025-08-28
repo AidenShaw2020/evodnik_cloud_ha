@@ -1,0 +1,39 @@
+{
+  "title": "eVodník",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Přihlášení",
+        "description": "Zadejte přístupové údaje k servis.evodnik.cz",
+        "data": {
+          "username": "UserName / Email",
+          "password": "Password"
+        }
+      },
+      "select_device": {
+        "title": "Vyberte zařízení",
+        "description": "Zvolte zařízení, které chcete sledovat.",
+        "data": {
+          "device_id": "Zařízení"
+        }
+      }
+    },
+    "error": {
+      "auth": "Přihlášení se nezdařilo. Zkontrolujte přihlašovací údaje.",
+      "no_devices": "Nenalezena žádná zařízení pro tento účet."
+    },
+    "abort": {}
+  },
+  "options": {
+    "step": {
+      "options": {
+        "title": "Možnosti eVodník",
+        "description": "Nastavte interval aktualizace a jednotku spotřeby.",
+        "data": {
+          "scan_interval_min": "Interval aktualizace (min)",
+          "consumption_unit": "Jednotka spotřeby (např. L, m³)"
+        }
+      }
+    }
+  }
+}
