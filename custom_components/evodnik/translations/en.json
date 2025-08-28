@@ -16,6 +16,13 @@
         "data": {
           "device_id": "Device"
         }
+      },
+      "consumption_unit": {
+        "title": "Consumption unit",
+        "description": "Enter the unit in which you want water consumption to be reported.",
+        "data": {
+          "consumption_unit": "Consumption unit (e.g., L, m³)"
+        }
       }
     },
     "error": {
@@ -28,10 +35,9 @@
     "step": {
       "options": {
         "title": "eVodník options",
-        "description": "Set update interval and consumption unit.",
+        "description": "Set update interval.",
         "data": {
-          "scan_interval_min": "Update interval (min)",
-          "consumption_unit": "Consumption unit (e.g., L, m³)"
+          "scan_interval_min": "Update interval (min)"
         }
       }
     }
