@@ -4,7 +4,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.storage import Store
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_CONSUMPTION_UNIT
 from .coordinator import EvodnikDataUpdateCoordinator
 
 PLATFORMS = ["sensor"]
@@ -15,6 +15,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator
+
+    # One-time migration: move CONF_CONSUMPTION_UNIT from options to data (new installs store it in data)
+    if CONF_CONSUMPTION_UNIT in entry.options and CONF_CONSUMPTION_UNIT not in entry.data:
+        new_data = {**entry.data, CONF_CONSUMPTION_UNIT: entry.options[CONF_CONSUMPTION_UNIT]}
+        new_options = {k: v for k, v in entry.options.items() if k != CONF_CONSUMPTION_UNIT}
+        hass.config_entries.async_update_entry(entry, data=new_data, options=new_options)
+
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

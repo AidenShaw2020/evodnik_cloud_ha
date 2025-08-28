@@ -16,6 +16,13 @@
         "data": {
           "device_id": "Zařízení"
         }
+      },
+      "consumption_unit": {
+        "title": "Jednotka spotřeby",
+        "description": "Zadejte jednotku, ve které chcete vykazovat spotřebu vody.",
+        "data": {
+          "consumption_unit": "Jednotka spotřeby (např. L, m³)"
+        }
       }
     },
     "error": {
@@ -28,10 +35,9 @@
     "step": {
       "options": {
         "title": "Možnosti eVodník",
-        "description": "Nastavte interval aktualizace a jednotku spotřeby.",
+        "description": "Nastavte interval aktualizace.",
         "data": {
-          "scan_interval_min": "Interval aktualizace (min)",
-          "consumption_unit": "Jednotka spotřeby (např. L, m³)"
+          "scan_interval_min": "Interval aktualizace (min)"
         }
       }
     }

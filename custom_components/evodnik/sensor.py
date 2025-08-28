@@ -77,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     hdr0 = headers[0] if headers else {}
     device_number = hdr0.get("DeviceNumber")
     device_name = entry.data.get(CONF_DEVICE_NAME) or hdr0.get("DeviceName") or f"Device {entry.data.get(CONF_DEVICE_ID)}"
-    unit = entry.options.get(CONF_CONSUMPTION_UNIT, DEFAULT_CONSUMPTION_UNIT)
+    unit = entry.data.get(CONF_CONSUMPTION_UNIT, entry.options.get(CONF_CONSUMPTION_UNIT, DEFAULT_CONSUMPTION_UNIT))
 
     entities: list[SensorEntity] = []
 

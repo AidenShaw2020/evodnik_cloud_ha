@@ -16,6 +16,7 @@ from .const import (
 )
 from .api import EvodnikClient
 
+
 class EvodnikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
@@ -55,24 +56,36 @@ class EvodnikConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             name = device_map.get(device_id, f"Device {device_id}")
             await self.async_set_unique_id(f"{DOMAIN}_{self._username}_{device_id}")
             self._abort_if_unique_id_configured()
-            return self.async_create_entry(
-                title=f"eVodník: {name}",
-                data={
-                    CONF_USERNAME: self._username,
-                    CONF_PASSWORD: self._password,
-                    CONF_DEVICE_ID: int(device_id),
-                    CONF_DEVICE_NAME: name,
-                },
-                options={
-                    CONF_SCAN_INTERVAL_MIN: DEFAULT_SCAN_INTERVAL_MIN,
-                    CONF_CONSUMPTION_UNIT: DEFAULT_CONSUMPTION_UNIT,
-                }
-            )
+            self._sel_device_id = int(device_id)
+            self._sel_device_name = name
+            return await self.async_step_consumption_unit()
 
         schema = vol.Schema({
             vol.Required(CONF_DEVICE_ID): vol.In(device_map),
         })
         return self.async_show_form(step_id="select_device", data_schema=schema, errors=errors)
+
+    async def async_step_consumption_unit(self, user_input: Dict[str, Any] | None = None) -> FlowResult:
+        errors: Dict[str, str] = {}
+        if user_input is not None:
+            return self.async_create_entry(
+                title=f"eVodník: {self._sel_device_name}",
+                data={
+                    CONF_USERNAME: self._username,
+                    CONF_PASSWORD: self._password,
+                    CONF_DEVICE_ID: int(self._sel_device_id),
+                    CONF_DEVICE_NAME: self._sel_device_name,
+                    CONF_CONSUMPTION_UNIT: user_input[CONF_CONSUMPTION_UNIT],
+                },
+                options={
+                    CONF_SCAN_INTERVAL_MIN: DEFAULT_SCAN_INTERVAL_MIN,
+                }
+            )
+
+        schema = vol.Schema({
+            vol.Required(CONF_CONSUMPTION_UNIT, default=DEFAULT_CONSUMPTION_UNIT): str
+        })
+        return self.async_show_form(step_id="consumption_unit", data_schema=schema, errors=errors)
 
     @staticmethod
     @callback
@@ -96,10 +109,7 @@ class EvodnikOptionsFlow(config_entries.OptionsFlow):
             vol.Required(
                 CONF_SCAN_INTERVAL_MIN,
                 default=current.get(CONF_SCAN_INTERVAL_MIN, DEFAULT_SCAN_INTERVAL_MIN)
-            ): vol.All(int, vol.Range(min=1, max=1440)),
-            vol.Required(
-                CONF_CONSUMPTION_UNIT,
-                default=current.get(CONF_CONSUMPTION_UNIT, DEFAULT_CONSUMPTION_UNIT)
-            ): str
+            ): vol.All(int, vol.Range(min=1, max=1440))
         })
         return self.async_show_form(step_id="options", data_schema=schema)
+
