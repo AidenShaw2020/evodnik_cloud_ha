@@ -18,8 +18,9 @@ from .api import EvodnikClient
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class EvodnikDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
-    """Coordinator fetching data and maintaining a daily-based cumulative total."""
+    """Coordinator fetching data and maintaining a cumulative total using delta logic."""
 
     def __init__(self, hass: HomeAssistant, entry) -> None:
         self.hass = hass
@@ -29,7 +30,7 @@ class EvodnikDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         # Persistent store for accumulators (per DeviceNumber)
         self.store: Store = Store(hass, 1, f"{DOMAIN}_accumulators.json")
         self.index_store: Store = Store(hass, 1, f"{DOMAIN}_index.json")
-        self._index = None
+        self._index: Optional[Dict[str, Any]] = None
         self._acc_data: Optional[Dict[str, Any]] = None  # lazy-loaded
 
         scan_min = entry.options.get(CONF_SCAN_INTERVAL_MIN, DEFAULT_SCAN_INTERVAL_MIN)
@@ -51,8 +52,8 @@ class EvodnikDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         except Exception as err:
             raise UpdateFailed(str(err)) from err
 
-        # Compute virtual cumulative total on a DAILY base:
-        # total = daily_offset_liters + today's total (ItemType 8 -> ThisValueFlow1)
+        # Compute cumulative total using DELTA between consecutive readings of today's counter.
+        # grand_total is stored in 'daily_offset_liters' for backward compatibility.
         try:
             if self._acc_data is None:
                 self._acc_data = await self.store.async_load() or {}
@@ -61,7 +62,7 @@ class EvodnikDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             hdr0 = headers[0] if headers else {}
             device_number = str(hdr0.get("DeviceNumber") or "unknown")
 
-            # Update index (entry_id -> device_number)
+            # Update index (entry_id -> device_number) for cleanup on entry removal
             if self._index is None:
                 self._index = await self.index_store.async_load() or {}
             if self._index.get(self.entry.entry_id) != device_number:
@@ -72,42 +73,31 @@ class EvodnikDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             day_item = next((it for it in rep if isinstance(it, dict) and it.get("ItemType") == 8), {})
 
             today_liters = float(day_item.get("ThisValueFlow1") or 0.0)
-            yesterday_liters = float(day_item.get("LastValueFlow1") or 0.0)
 
-            today_key = dt_util.now().date().isoformat()
-
+            # Load per-device accumulators
             dev = dict(self._acc_data.get(device_number) or {})
-            daily_offset = float(dev.get("daily_offset_liters", 0.0))
-            last_key = dev.get("daily_last_day_key")
-            initialized = bool(dev.get("initialized", False))
+            grand_total = float(dev.get("daily_offset_liters", 0.0))  # reuse key for compatibility
+            last_today = float(dev.get("last_today_liters", today_liters))
 
-            if not initialized:
-                # First initialization: DO NOT add same day. Correct legacy offset if present.
-                if last_key == today_key and daily_offset > 0.0:
-                    # Previous buggy init may have added yesterday; subtract it back (not below zero)
-                    daily_offset = max(0.0, daily_offset - yesterday_liters)
-                dev["initialized"] = True
-                dev["daily_last_day_key"] = today_key
-                dev["daily_offset_liters"] = daily_offset
-            else:
-                # Normal daily rollover
-                if last_key != today_key:
-                    carry = yesterday_liters
-                    if carry <= 0.0:
-                        carry = float(dev.get("snapshot_today_liters", 0.0))
-                    daily_offset += carry
-                    dev["daily_offset_liters"] = daily_offset
-                    dev["daily_last_day_key"] = today_key
-
-            # Snapshot today liters for rollover fallback
-            dev["snapshot_today_liters"] = today_liters
+            # Delta increment
+            inc = today_liters - last_today
+            if inc < 0:
+                # rollover at midnight/reset -> add what has flown so far today
+                inc = today_liters
+            if inc > 0:
+                grand_total += inc
 
             # Persist
+            dev["last_today_liters"] = today_liters
+            dev["daily_offset_liters"] = grand_total
+            # Keep legacy keys if present; they are no longer used by the delta logic
+
             self._acc_data[device_number] = dev
             await self.store.async_save(self._acc_data)
 
-            data["virtual_total_liters"] = daily_offset + today_liters
+            # Expose cumulative total directly (already includes today's amount)
+            data["virtual_total_liters"] = grand_total
         except Exception as err:
-            _LOGGER.debug("Daily virtual total computation failed: %s", err)
+            _LOGGER.debug("Delta total computation failed: %s", err)
 
         return data
